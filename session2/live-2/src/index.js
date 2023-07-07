@@ -56,6 +56,7 @@ function init3D() {
 
     if (mixer !== null) {
       mixer.update(clock.getDelta());
+      clock.
     }
 
     if (neckBone !== null) {
