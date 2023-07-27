@@ -85,6 +85,10 @@ function init3D() {
 
         if (child.name === 'tshirt') {
           ob.shirt = child;
+          ob.shirt.material = new THREE.MeshStandardMaterial({
+            map: data.texture,
+            transparent: false,
+          });
         }
         if (child.name === 'cap') {
           ob.cap = child;
@@ -97,8 +101,9 @@ function init3D() {
       }
     });
 
-    // scene.add(objects);
-    setUpObjects(data.texture);
+    scene.add(objects);
+
+    // setUpObjects(data.texture);
     initStore();
   });
 
@@ -146,8 +151,9 @@ function init3D() {
     if (!image) return;
     // console.log(image);
     const texture = await loadTexture(image);
-    ob.shirt.children[0].material.color = new THREE.Color(`rgba(${color}, 1)`);
-    ob.shirt.children[1].material.map = texture;
+    // ob.shirt.children[0].material.color = new THREE.Color(`rgba(${color}, 1)`);
+    // ob.shirt.children[1].material.map = texture;
+    ob.shirt.material.map = texture;
 
     console.log('clicked', image, color);
   }
