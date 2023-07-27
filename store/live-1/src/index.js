@@ -116,7 +116,7 @@ function init3D() {
     });
     ob.shirt.children[1].material = new THREE.MeshStandardMaterial({
       map: texture,
-      transparent: false,
+      transparent: true,
     });
 
     scene.add(ob.shirt);
@@ -147,6 +147,7 @@ function init3D() {
     // console.log(image);
     const texture = await loadTexture(image);
     ob.shirt.children[0].material.color = new THREE.Color(`rgba(${color}, 1)`);
+    // ob.shirt.children[0].material.color = new THREE.Color(`rgba(255, 0, 0, 1)`);
     ob.shirt.children[1].material.map = texture;
 
     console.log('clicked', image, color);
