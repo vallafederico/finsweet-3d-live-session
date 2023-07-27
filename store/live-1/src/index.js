@@ -11,10 +11,7 @@ window.Webflow.push(() => {
 
 // Init Function
 function init3D() {
-  // console.log('hello');
-  // select container
   const viewport = document.querySelector('[data-3d="c"]');
-  // console.log(viewport);
 
   // create scened and renderer and camera
   const scene = new THREE.Scene();
@@ -28,16 +25,13 @@ function init3D() {
 
   // add controls
   const controls = new OrbitControls(camera, renderer.domElement);
-  // controls.autoRotate = true;
-  // controls.enableDamping = true;
-  // controls.dampingFactor = 0.05;
+  // const controls = new OrbitControls(camera, document.body);
 
   camera.position.z = 1.5;
 
   // declaring the bone ouside the load
   let neckBone = null;
 
-  // animation setup
   let clock = new THREE.Clock();
   let mixer = null;
 
@@ -75,45 +69,93 @@ function init3D() {
     dirLight.position.x = mouse.x * 1;
     dirLight.position.y = mouse.y * 1;
 
+    if (ob.tshirt) ob.tshirt.rotation.y += 0.01;
+
     renderer.render(scene, camera);
   }
 
+  const ob = {
+    tshirt: null,
+    cap: null,
+    mug: null,
+  };
   animate();
 
   // --- load 3d async
   const assets = load();
   assets.then((data) => {
-    const robot = data.robot.scene;
-    const animations = data.robot.animations;
+    const objects = data.objects.scene;
+    // const animations = data.objects.animations;
 
-    // console.log(animations);
+    // console.log(objects);
+    // tshirt cap mug
 
-    robot.traverse((child) => {
+    objects.traverse((child) => {
       if (child.isMesh) {
+        if (child.name === 'tshirt') {
+          ob.tshirt = child;
+          ob.tshirt.visible = false;
+        } else if (child.name === 'cap') {
+          ob.cap = child;
+          ob.cap.visible = false;
+          // ob.cap.position.x = 2;
+        } else if (child.name === 'mug') {
+          ob.mug = child;
+          ob.mug.visible = false;
+          // ob.mug.position.x = -2;
+        }
+
         child.material = new THREE.MeshStandardMaterial({
-          color: 0xffff00,
+          // color: 0x000000,
+          transparent: true,
         });
-        // child.material.wireframe = true;
+
         child.material.map = data.texture;
       }
     });
 
-    // robot.position.y = -1;
-    scene.add(robot);
+    initStore();
+
+    scene.add(objects);
   });
+
+  // ----------- Store Setup
+
+  async function initStore() {
+    const shirts = [...document.querySelectorAll('[data-3d-shirt]')];
+    // console.log(shirts);
+
+    shirts.forEach((shirt, i) => {
+      const image = shirt.src;
+      const color = shirt.getAttribute('data-3d-shirt');
+      const trigger = shirt.parentElement;
+      // console.log(image, color, trigger);
+      if (i === 0) changeShirt(image, color);
+
+      trigger.onclick = () => changeShirt(image, color);
+    });
+  }
+
+  async function changeShirt(image, color) {
+    const texture = await loadTexture(image);
+    ob.tshirt.material.map = texture;
+
+    ob.tshirt.visible = true;
+    // console.log(texture);
+  }
 }
 
 /* Loader Functions */
 async function load() {
-  const robot = await loadModel(
-    'https://uploads-ssl.webflow.com/649ad5f046bf36eb25e083b0/649b131109b5eb18bae8977e_store-3d.001.glb.txt'
+  const objects = await loadModel(
+    'https://uploads-ssl.webflow.com/64c29097f97d5b1fd37394c9/64c299afc128b021ad73275d_store-3d-full.glb.txt'
   );
 
   const texture = await loadTexture(
     'https://uploads-ssl.webflow.com/649ad5f046bf36eb25e083b0/649add778dc72c708696417a_print1.png'
   );
 
-  return { robot, texture };
+  return { objects, texture };
 }
 
 const textureLoader = new TextureLoader();
