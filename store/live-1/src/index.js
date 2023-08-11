@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TextureLoader } from 'three';
+import gsap from 'gsap';
 
 // live: https://sweet-merch-b19b823dbb1e4ce5f33d6fba13d.webflow.io/backup
 // project: https://webflow.com/design/sweet-merch-b19b823dbb1e4ce5f33d6fba13d?pageId=64c29097f97d5b1fd37394c0
@@ -73,6 +74,8 @@ function init3D() {
     dirLight.position.y = mouse.y * 1;
 
     if (ob.tshirt) ob.tshirt.rotation.y += 0.01;
+    if (ob.mug) ob.mug.rotation.y += 0.01;
+    if (ob.cap) ob.cap.rotation.y += 0.01;
 
     renderer.render(scene, camera);
   }
@@ -126,7 +129,19 @@ function init3D() {
 
   async function initStore() {
     const shirts = [...document.querySelectorAll('[data-3d-shirt]')];
-    // console.log(shirts);
+    const caps = [...document.querySelectorAll('[data-3d-cap]')];
+    const mugs = [...document.querySelectorAll('[data-3d-mug]')];
+    // console.log('caps', caps);
+
+    mugs.forEach((mug, i) => {
+      const image = mug.src;
+      const color = mug.getAttribute('data-3d-shirt');
+      const trigger = mug.parentElement;
+      // console.log(image, color, trigger);
+      if (i === 0) changeMug(image, color);
+
+      trigger.onclick = () => changeMug(image, color);
+    });
 
     shirts.forEach((shirt, i) => {
       const image = shirt.src;
@@ -137,6 +152,49 @@ function init3D() {
 
       trigger.onclick = () => changeShirt(image, color);
     });
+
+    caps.forEach((cap, i) => {
+      const image = cap.src;
+      const color = cap.getAttribute('data-3d-shirt');
+      const trigger = cap.parentElement;
+      // console.log(image, color, trigger);
+      if (i === 0) changeShirt(image, color);
+
+      trigger.onclick = () => changeCap(image, color);
+    });
+
+    // ------- Listen to the different NAV items
+    const navItems = [...document.querySelectorAll('[data-3d-nav]')];
+    // console.log(navItems);
+
+    navItems.forEach((item) => {
+      item.onclick = () => {
+        const name = item.getAttribute('data-3d-nav');
+        console.log(name);
+
+        if (name === 'tshirt') {
+          ob.tshirt.visible = true;
+          ob.cap.visible = false;
+          ob.mug.visible = false;
+        } else if (name === 'cap') {
+          ob.tshirt.visible = false;
+          ob.cap.visible = true;
+          ob.mug.visible = false;
+        } else if (name === 'mug') {
+          ob.tshirt.visible = false;
+          ob.cap.visible = false;
+          ob.mug.visible = true;
+        }
+      };
+    });
+  }
+
+  async function changeMug(image, color) {
+    const texture = await loadTexture(image);
+    ob.mug.material.map = texture;
+
+    ob.mug.visible = true;
+    // console.log(texture);
   }
 
   async function changeShirt(image, color) {
@@ -146,12 +204,20 @@ function init3D() {
     ob.tshirt.visible = true;
     // console.log(texture);
   }
+
+  async function changeCap(image, color) {
+    const texture = await loadTexture(image);
+    ob.cap.material.map = texture;
+
+    ob.cap.visible = true;
+    // console.log(texture);
+  }
 }
 
 /* Loader Functions */
 async function load() {
   const objects = await loadModel(
-    'https://uploads-ssl.webflow.com/64c29097f97d5b1fd37394c9/64c299afc128b021ad73275d_store-3d-full.glb.txt'
+    'https://uploads-ssl.webflow.com/64c29097f97d5b1fd37394c9/64d274f937bae7fd9535eac0_store-3d-tabs.glb.txt'
   );
 
   const texture = await loadTexture(
